@@ -1,5 +1,6 @@
 {
   "compilerOptions": {
+    "types": ["p5/global"],
     "module": "CommonJS",
     "target": "ES6",
     "checkJs": true,
