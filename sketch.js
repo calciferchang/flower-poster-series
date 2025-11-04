@@ -8,7 +8,6 @@ function setup() {
 function draw() {}
 
 function keyPressed() {
-  background(255);
   let flower = new Flower({
     start: { x: width / 2, y: height },
   });
@@ -47,25 +46,28 @@ class StemSegment {
 
 class Flower {
   constructor({
+    // Need to generate predetermined start positions
     start,
     numSegments = floor(constrain(randomGaussian(2.5, 3), 1, 10)),
     stemType = random(["wild"]),
     bulbType = random(["daisy"]),
+    colorPalette = random(["dark", "light"]),
   }) {
     this.segments = [];
     this.numSegments = numSegments;
     this.stemType = stemType;
     this.bulbType = bulbType;
+    this.colorPalette = colorPalette;
 
     // Generate all segments
     this.generateSegments(start);
   }
 
   generateSegments(start) {
+    // Need to move more of this into different types
     noFill();
     let startAngle = random(-22, 22.5);
-    let distance = STEMTYPE[this.stemType]();
-    console.log(this.numSegments);
+    let distance = STEM_TYPE[this.stemType]();
     // First segment
     let a1 = start;
     let c1 = getSecondPoint(a1, startAngle, distance);
@@ -99,13 +101,14 @@ class Flower {
   }
   drawBulb() {
     let endPoint = this.segments[this.segments.length - 1].a2;
-    BULBTYPE[this.bulbType](endPoint);
+    BULB_TYPE[this.bulbType](endPoint);
   }
 
   draw() {
+    background(CANVAS_COLORS[this.colorPalette].canvas);
     strokeWeight(8);
     noFill();
-    stroke("black");
+    stroke(CANVAS_COLORS[this.colorPalette].stem);
     for (let segment of this.segments) {
       bezier(...segment.toArray());
     }
@@ -113,22 +116,33 @@ class Flower {
   }
 }
 
-const STEMTYPE = {
+const STEM_TYPE = {
   wild: () => random(75, 200),
 };
 
-const BULBTYPE = {
+const BULB_TYPE = {
   daisy: (position) => {
     noStroke();
     translate(position.x, position.y);
     fill(0);
     circle(0, 0, 20);
-    fill("rgb(182,164,221)");
+    fill(random(Object.values(FLOWER_COLORS)));
     for (let i = 0; i < 10; i++) {
       ellipse(15, 20, 40, 40);
       rotate(60);
     }
   },
+};
+
+const FLOWER_COLORS = {
+  yellow: "rgb(251, 178, 109)",
+  orange: "rgb(245, 125, 98)",
+  red: "rgb(225, 91, 100)",
+};
+
+const CANVAS_COLORS = {
+  dark: { canvas: "rgb(17, 17, 17)", stem: "rgb(250, 249, 246)" },
+  light: { canvas: "rgb(250, 249, 246)", stem: "rgb(17, 17, 17)" },
 };
 
 //Helper functions
