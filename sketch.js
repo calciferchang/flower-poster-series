@@ -11,11 +11,11 @@ function keyPressed() {
   background(255);
   strokeWeight(10);
   noFill();
-  newFlower({
-    start: { x: width / 2, y: height * 0.9 },
-    numSegments: 1,
-    stemType: "wild",
+  let flower = new Flower({
+    start: { x: width / 2, y: height },
+    numSegments: 20,
   });
+  flower.draw();
 }
 
 function newFlower({
@@ -57,8 +57,6 @@ function newFlower({
   point(c2.x, c2.y);
 }
 
-function newSegment() {}
-
 class StemSegment {
   constructor(a1, c1, c2, a2) {
     this.a1 = a1; // anchor 1 (start)
@@ -86,6 +84,64 @@ class StemSegment {
       x: bezierPoint(this.a1.x, this.c1.x, this.c2.x, this.a2.x, t),
       y: bezierPoint(this.a1.y, this.c1.y, this.c2.y, this.a2.y, t),
     };
+  }
+}
+
+class Flower {
+  constructor({
+    start,
+    numSegments = random(3, 8),
+    stemType = random(["wild"]),
+  }) {
+    this.segments = [];
+    this.numSegments = numSegments;
+    this.stemType = stemType;
+
+    // Generate all segments
+    this.generateSegments(start);
+  }
+
+  generateSegments(start) {
+    let startAngle = random(-22, 22.5);
+    let distance = STEMTYPE[this.stemType]();
+    console.log(this.numSegments);
+    // First segment
+    let a1 = start;
+    let c1 = getSecondPoint(a1, startAngle, distance);
+    let a2 = { x: random(0, width), y: random(0, height) };
+    let c2 = { x: random(0, width), y: random(0, height) };
+
+    this.segments.push(new StemSegment(a1, c1, c2, a2));
+
+    // Generate remaining segments
+    for (let i = 1; i < this.numSegments; i++) {
+      let prevSegment = this.segments[i - 1];
+      this.addConnectedSegment(prevSegment);
+    }
+  }
+
+  addConnectedSegment(prevSegment) {
+    // Start where previous segment ended
+    let a1 = prevSegment.a2;
+
+    // Reflect previous c2 across a2 for smooth continuation
+    let c1 = {
+      x: prevSegment.a2.x + (prevSegment.a2.x - prevSegment.c2.x),
+      y: prevSegment.a2.y + (prevSegment.a2.y - prevSegment.c2.y),
+    };
+
+    // New random endpoint and control point
+    let a2 = { x: random(0, width), y: random(0, height) };
+    let c2 = { x: random(0, width), y: random(0, height) };
+
+    this.segments.push(new StemSegment(a1, c1, c2, a2));
+  }
+
+  draw() {
+    stroke("black");
+    for (let segment of this.segments) {
+      bezier(...segment.toArray());
+    }
   }
 }
 
