@@ -9,52 +9,10 @@ function draw() {}
 
 function keyPressed() {
   background(255);
-  strokeWeight(10);
-  noFill();
   let flower = new Flower({
     start: { x: width / 2, y: height },
-    numSegments: 20,
   });
   flower.draw();
-}
-
-function newFlower({
-  start,
-  numSegments = random(3, 8),
-  stemType = random(["wild", "calm"]),
-}) {
-  let startAngle = random(-22, 22.5);
-  let distance = STEMTYPE[stemType]();
-  let a1 = start;
-  let c1 = getSecondPoint(a1, startAngle, distance);
-  let a2 = { x: random(0, width), y: random(0, height) };
-  let c2 = { x: random(0, width), y: random(0, height) };
-  console.log(c2);
-  let stemSegment = new StemSegment(a1, c1, c2, a2);
-  stroke("black");
-  bezier(...stemSegment.toArray());
-  // for (let i = 0; i < numSegments; i++) {}
-  // Second segment - smooth continuation
-  let a1_second = a2; // Start where first segment ended
-
-  // Reflect c2 across a2 to get smooth control point
-  let c1_second = {
-    x: a2.x + (a2.x - c2.x), // a2.x - (c2.x - a2.x)
-    y: a2.y + (a2.y - c2.y),
-  };
-
-  let a2_second = { x: random(0, width), y: random(0, height) };
-  let c2_second = { x: random(0, width), y: random(0, height) };
-
-  let stemSegment2 = new StemSegment(
-    a1_second,
-    c1_second,
-    c2_second,
-    a2_second,
-  );
-  bezier(...stemSegment2.toArray());
-  stroke("red");
-  point(c2.x, c2.y);
 }
 
 class StemSegment {
@@ -90,18 +48,21 @@ class StemSegment {
 class Flower {
   constructor({
     start,
-    numSegments = random(3, 8),
+    numSegments = floor(constrain(randomGaussian(2.5, 3), 1, 10)),
     stemType = random(["wild"]),
+    bulbType = random(["daisy"]),
   }) {
     this.segments = [];
     this.numSegments = numSegments;
     this.stemType = stemType;
+    this.bulbType = bulbType;
 
     // Generate all segments
     this.generateSegments(start);
   }
 
   generateSegments(start) {
+    noFill();
     let startAngle = random(-22, 22.5);
     let distance = STEMTYPE[this.stemType]();
     console.log(this.numSegments);
@@ -136,17 +97,38 @@ class Flower {
 
     this.segments.push(new StemSegment(a1, c1, c2, a2));
   }
+  drawBulb() {
+    let endPoint = this.segments[this.segments.length - 1].a2;
+    BULBTYPE[this.bulbType](endPoint);
+  }
 
   draw() {
+    strokeWeight(8);
+    noFill();
     stroke("black");
     for (let segment of this.segments) {
       bezier(...segment.toArray());
     }
+    this.drawBulb();
   }
 }
 
 const STEMTYPE = {
   wild: () => random(75, 200),
+};
+
+const BULBTYPE = {
+  daisy: (position) => {
+    noStroke();
+    translate(position.x, position.y);
+    fill(0);
+    circle(0, 0, 20);
+    fill("rgb(182,164,221)");
+    for (let i = 0; i < 10; i++) {
+      ellipse(15, 20, 40, 40);
+      rotate(60);
+    }
+  },
 };
 
 //Helper functions
