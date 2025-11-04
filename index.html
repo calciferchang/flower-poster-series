@@ -1,23 +1,36 @@
 <!doctype html>
 <html lang="en">
   <head>
-    <meta charset="UTF-8" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Document</title>
     <script src="https://cdn.jsdelivr.net/npm/p5@1.11.10/lib/p5.js"></script>
     <style>
-      @-moz-documenthtml, body {
+      * {
         margin: 0;
         padding: 0;
+        background-color: rgb(75, 75, 75);
       }
-      canvas {
-        display: block;
-        outline: 1px black solid;
+      main {
+        margin-top: 24px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+      }
+      #sketch-container {
+        aspect-ratio: 3 / 4;
+        height: calc(100vh - 48px);
+        box-shadow:
+          0px 1px 1px rgba(3, 7, 18, 0.02),
+          0px 5px 4px rgba(3, 7, 18, 0.03),
+          0px 12px 9px rgba(3, 7, 18, 0.05),
+          0px 20px 15px rgba(3, 7, 18, 0.06),
+          0px 32px 24px rgba(3, 7, 18, 0.08);
       }
     </style>
+    <meta charset="utf-8" />
   </head>
   <body>
-    <main></main>
+    <main>
+      <div id="sketch-container"></div>
+    </main>
     <script src="sketch.js"></script>
   </body>
 </html>

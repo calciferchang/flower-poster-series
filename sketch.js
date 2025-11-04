@@ -1,7 +1,12 @@
 //@ts-nocheck
 
 function setup() {
-  createCanvas(600, 600);
+  let container = select("#sketch-container");
+  let w = container.width;
+  let h = container.height;
+  createCanvas(w, h);
+  select("canvas").parent("sketch-container");
+
   angleMode(DEGREES);
 }
 
