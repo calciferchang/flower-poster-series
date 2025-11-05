@@ -65,7 +65,17 @@ function newPoster() {
       colorPalette: colorPalette,
     });
     flower.draw();
+    flowers.push(flower);
   }
+
+  currentPoster = {
+    numFlowers: numFlowers,
+    colorPalette: colorPalette,
+    flowers: flowers,
+    bgColor: bgColor,
+  };
+
+  window.currentPoster = currentPoster;
 }
 class StemSegment {
   constructor(a1, c1, c2, a2) {
@@ -194,6 +204,8 @@ function getSecondPoint(origin, angle, length) {
 //
 let container;
 let resizeTimeout;
+let currentPoster;
+
 function setup() {
   container = select("#sketch-container");
   createCanvas(container.width, container.height);
@@ -212,6 +224,8 @@ function windowResized() {
     loop(); // Resume animation
   }, 250);
 }
-function draw() {
+function draw() {}
+
+function keyPressed() {
   newPoster();
 }
