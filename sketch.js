@@ -7,12 +7,17 @@ const CONFIG = {
 };
 
 const FLOWER_CONFIG = {
+  // Gaussian to maintain the possibility of chaos while lessening its frequency
   numSegments: () => floor(constrain(randomGaussian(2.5, 3), 1, 10)),
+  petalColor: () => color(random(Object.keys(FLOWER_CONFIG.COLORS))),
   COLORS: {
     yellow: "rgb(251, 178, 109)",
     orange: "rgb(245, 125, 98)",
     red: "rgb(225, 91, 100)",
   },
+  stemLength: () => random(Object.keys(STEM_LENGTHS)),
+  stemCurveType: () => random(Object.keys(STEM_CURVES)),
+  bulbVariant: () => random(Object.keys(BULB_VARIANTS)),
 };
 
 const CANVAS_COLORS = {
@@ -72,18 +77,16 @@ class Flower {
   constructor({
     // Need to generate predetermined start positions
     start,
-    numSegments = FLOWER_CONFIG.numSegments(),
-    stemType = random(["wild"]),
-    bulbType = random(["daisy"]),
     currentTint,
     colorPalette,
   }) {
     this.segments = [];
-    this.numSegments = numSegments;
-    this.stemType = stemType;
-    this.bulbType = bulbType;
+    this.numSegments = FLOWER_CONFIG.numSegments();
+    this.stemLength = FLOWER_CONFIG.stemLength();
+    this.stemCurveType = FLOWER_CONFIG.stemCurveType();
+    this.bulbVariant = FLOWER_CONFIG.bulbVariant();
     this.colorPalette = colorPalette;
-    this.petalColor = color(random(Object.values(FLOWER_CONFIG.COLORS)));
+    this.petalColor = FLOWER_CONFIG.petalColor();
     this.currentTint = currentTint;
     // Generate all segments
     this.generateSegments(start);
