@@ -6,10 +6,13 @@ const CONFIG = {
   frameRate: 1 / 2,
 };
 
-const FLOWER_COLORS = {
-  yellow: "rgb(251, 178, 109)",
-  orange: "rgb(245, 125, 98)",
-  red: "rgb(225, 91, 100)",
+const FLOWER_CONFIG = {
+  numSegments: () => floor(constrain(randomGaussian(2.5, 3), 1, 10)),
+  COLORS: {
+    yellow: "rgb(251, 178, 109)",
+    orange: "rgb(245, 125, 98)",
+    red: "rgb(225, 91, 100)",
+  },
 };
 
 const CANVAS_COLORS = {
@@ -69,7 +72,7 @@ class Flower {
   constructor({
     // Need to generate predetermined start positions
     start,
-    numSegments = floor(constrain(randomGaussian(2.5, 3), 1, 10)),
+    numSegments = FLOWER_CONFIG.numSegments(),
     stemType = random(["wild"]),
     bulbType = random(["daisy"]),
     currentTint,
@@ -80,7 +83,7 @@ class Flower {
     this.stemType = stemType;
     this.bulbType = bulbType;
     this.colorPalette = colorPalette;
-    this.petalColor = color(random(Object.values(FLOWER_COLORS)));
+    this.petalColor = color(random(Object.values(FLOWER_CONFIG.COLORS)));
     this.currentTint = currentTint;
     // Generate all segments
     this.generateSegments(start);
