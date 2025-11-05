@@ -1,7 +1,7 @@
 //@ts-nocheck
 const CONFIG = {
   numFlowers: () => floor(random(1, 5)),
-  colorPalette: () => random(["dark", "light"]),
+  colorPalette: () => random(Object.keys(COLOR_SCHEME)),
   FPS: 1 / 2,
 };
 
