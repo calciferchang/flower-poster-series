@@ -2,7 +2,7 @@
 const CONFIG = {
   numFlowers: () => floor(random(1, 5)),
   colorPalette: () => random(["dark", "light"]),
-  tintAmount: 0.25,
+  tintAmount: () => random(0.1, 0.7),
   FPS: 1 / 2,
 };
 
@@ -12,11 +12,12 @@ const COLOR_SCHEME = {
 };
 
 const FLOWER_CONFIG = {
+  firstSegmentAngle: () => random(-22.5, 22.5),
   // Gaussian to maintain the possibility of chaos while lessening its frequency
   numSegments: () => floor(constrain(randomGaussian(2.5, 3), 1, 10)),
-  petalColor: () => color(random(Object.keys(FLOWER_CONFIG.COLORS))),
+  petalColor: () => color(random(Object.values(FLOWER_CONFIG.COLORS))),
   COLORS: {
-    yellow: "rgb(251, 178, 109)",
+    yellow: "rgb(251, 194, 109)",
     orange: "rgb(245, 125, 98)",
     red: "rgb(225, 91, 100)",
   },
@@ -29,6 +30,7 @@ const STEM_LENGTHS = {
   wild: () => random(75, 200),
 };
 
+const STEM_CURVES = {};
 const BULB_VARIANTS = {
   daisy: (position, petalColor) => {
     push();
@@ -49,7 +51,7 @@ function newPoster() {
   let numFlowers = CONFIG.numFlowers();
   let colorPalette = CONFIG.colorPalette();
 
-  let tintAmount = CONFIG.tintAmount;
+  let tintAmount = CONFIG.tintAmount();
   let currentTint = tintAmount * numFlowers;
   background(COLOR_SCHEME[colorPalette].canvas);
   for (let i = numFlowers - 1; i >= 0; i--) {
@@ -114,8 +116,8 @@ class Flower {
 
   generateSegments(startPosition) {
     // Need to move more of this into different types
-    let startAngle = random(-22, 22.5);
-    let length = STEM_TYPE[this.stemLength]();
+    let startAngle = FLOWER_CONFIG.firstSegmentAngle();
+    let length = STEM_LENGTHS[this.stemLength]();
     // First segment
     let a1 = startPosition;
     let c1 = getSecondPoint(a1, startAngle, length);
@@ -157,7 +159,7 @@ class Flower {
       this.currentTint,
     );
 
-    BULB_TYPE[this.bulbType](endPoint, petalColor);
+    BULB_VARIANTS[this.bulbVariant](endPoint, petalColor);
   }
 
   draw() {
