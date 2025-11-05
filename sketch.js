@@ -2,7 +2,6 @@
 const CONFIG = {
   numFlowers: () => floor(random(1, 5)),
   colorPalette: () => random(["dark", "light"]),
-  tintAmount: () => random(0.1, 0.7),
   FPS: 1 / 2,
 };
 
@@ -51,19 +50,18 @@ function newPoster() {
   let numFlowers = CONFIG.numFlowers();
   let colorPalette = CONFIG.colorPalette();
 
-  let tintAmount = CONFIG.tintAmount();
-  let currentTint = tintAmount * numFlowers;
-
   let bgColor = COLOR_SCHEME[colorPalette].canvas;
   background(bgColor);
   container.style("background-color", bgColor);
 
+  let flowers = [];
+
   for (let i = numFlowers - 1; i >= 0; i--) {
-    currentTint -= tintAmount;
+    let tint = numFlowers === 1 ? 0 : map(i, 0, numFlowers - 1, 0, 0.7);
 
     let flower = new Flower({
       startPosition: { x: width / 2, y: height },
-      currentTint: currentTint,
+      currentTint: tint,
       colorPalette: colorPalette,
     });
     flower.draw();
