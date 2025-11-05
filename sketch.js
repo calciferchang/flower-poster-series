@@ -68,6 +68,7 @@ function newPoster() {
     flowers.push(flower);
   }
 
+  // Make information available for debugging
   currentPoster = {
     numFlowers: numFlowers,
     colorPalette: colorPalette,
@@ -204,6 +205,7 @@ function getSecondPoint(origin, angle, length) {
 //
 let container;
 let resizeTimeout;
+// for debugging
 let currentPoster;
 
 function setup() {
@@ -220,8 +222,8 @@ function windowResized() {
   clearTimeout(resizeTimeout);
   resizeTimeout = setTimeout(() => {
     resizeCanvas(container.elt.offsetWidth, container.elt.offsetHeight);
-    newPoster(); // Generate new poster with new dimensions
-    loop(); // Resume animation
+    newPoster();
+    loop();
   }, 250);
 }
 function draw() {}
