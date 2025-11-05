@@ -6,6 +6,11 @@ const CONFIG = {
   FPS: 1 / 2,
 };
 
+const COLOR_SCHEME = {
+  dark: { canvas: "rgb(17, 17, 17)", stem: "rgb(250, 249, 246)" },
+  light: { canvas: "rgb(250, 249, 246)", stem: "rgb(17, 17, 17)" },
+};
+
 const FLOWER_CONFIG = {
   // Gaussian to maintain the possibility of chaos while lessening its frequency
   numSegments: () => floor(constrain(randomGaussian(2.5, 3), 1, 10)),
@@ -20,9 +25,24 @@ const FLOWER_CONFIG = {
   bulbVariant: () => random(Object.keys(BULB_VARIANTS)),
 };
 
-const CANVAS_COLORS = {
-  dark: { canvas: "rgb(17, 17, 17)", stem: "rgb(250, 249, 246)" },
-  light: { canvas: "rgb(250, 249, 246)", stem: "rgb(17, 17, 17)" },
+const STEM_LENGTHS = {
+  wild: () => random(75, 200),
+};
+
+const BULB_VARIANTS = {
+  daisy: (position, petalColor) => {
+    push();
+    noStroke();
+    translate(position.x, position.y);
+    fill(0);
+    circle(0, 0, 20);
+    fill(petalColor);
+    for (let i = 0; i < 10; i++) {
+      ellipse(15, 20, 40, 40);
+      rotate(60);
+    }
+    pop();
+  },
 };
 
 function newPoster() {
@@ -31,7 +51,7 @@ function newPoster() {
 
   let tintAmount = CONFIG.tintAmount;
   let currentTint = tintAmount * numFlowers;
-  background(CANVAS_COLORS[colorPalette].canvas);
+  background(COLOR_SCHEME[colorPalette].canvas);
   for (let i = numFlowers - 1; i >= 0; i--) {
     currentTint -= tintAmount;
 
@@ -133,7 +153,7 @@ class Flower {
 
     let petalColor = lerpColor(
       this.petalColor,
-      color(CANVAS_COLORS[this.colorPalette].canvas),
+      color(COLOR_SCHEME[this.colorPalette].canvas),
       this.currentTint,
     );
 
@@ -144,8 +164,8 @@ class Flower {
     strokeWeight(8);
     noFill();
     let stemColor = lerpColor(
-      color(CANVAS_COLORS[this.colorPalette].stem),
-      color(CANVAS_COLORS[this.colorPalette].canvas),
+      color(COLOR_SCHEME[this.colorPalette].stem),
+      color(COLOR_SCHEME[this.colorPalette].canvas),
       this.currentTint,
     );
     stroke(stemColor);
@@ -155,26 +175,6 @@ class Flower {
     this.drawBulb();
   }
 }
-
-const STEM_TYPE = {
-  wild: () => random(75, 200),
-};
-
-const BULB_TYPE = {
-  daisy: (position, petalColor) => {
-    push();
-    noStroke();
-    translate(position.x, position.y);
-    fill(0);
-    circle(0, 0, 20);
-    fill(petalColor);
-    for (let i = 0; i < 10; i++) {
-      ellipse(15, 20, 40, 40);
-      rotate(60);
-    }
-    pop();
-  },
-};
 
 //Helper functions
 function getSecondPoint(origin, angle, length) {
