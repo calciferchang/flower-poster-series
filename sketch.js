@@ -3,7 +3,7 @@ const CONFIG = {
   numFlowers: () => floor(random(1, 5)),
   colorPalette: () => random(["dark", "light"]),
   tintAmount: 0.25,
-  frameRate: 1 / 2,
+  FPS: 1 / 2,
 };
 
 const FLOWER_CONFIG = {
@@ -36,7 +36,7 @@ function newPoster() {
     currentTint -= tintAmount;
 
     let flower = new Flower({
-      start: { x: width / 2, y: height },
+      startPosition: { x: width / 2, y: height },
       currentTint: currentTint,
       colorPalette: colorPalette,
     });
@@ -45,7 +45,7 @@ function newPoster() {
 }
 class StemSegment {
   constructor(a1, c1, c2, a2) {
-    this.a1 = a1; // anchor 1 (start)
+    this.a1 = a1; // anchor 1 (startPosition)
     this.c1 = c1; // control 1
     this.c2 = c2;
     this.a2 = a2;
@@ -76,7 +76,7 @@ class StemSegment {
 class Flower {
   constructor({
     // Need to generate predetermined start positions
-    start,
+    startPosition,
     currentTint,
     colorPalette,
   }) {
@@ -89,17 +89,16 @@ class Flower {
     this.petalColor = FLOWER_CONFIG.petalColor();
     this.currentTint = currentTint;
     // Generate all segments
-    this.generateSegments(start);
+    this.generateSegments(startPosition);
   }
 
-  generateSegments(start) {
+  generateSegments(startPosition) {
     // Need to move more of this into different types
-    noFill();
     let startAngle = random(-22, 22.5);
-    let distance = STEM_TYPE[this.stemType]();
+    let length = STEM_TYPE[this.stemLength]();
     // First segment
-    let a1 = start;
-    let c1 = getSecondPoint(a1, startAngle, distance);
+    let a1 = startPosition;
+    let c1 = getSecondPoint(a1, startAngle, length);
     let a2 = { x: random(0, width), y: random(0, height) };
     let c2 = { x: random(0, width), y: random(0, height) };
 
@@ -195,7 +194,7 @@ function setup() {
   select("canvas").parent("sketch-container");
 
   angleMode(DEGREES);
-  frameRate(CONFIG.frameRate);
+  frameRate(CONFIG.FPS);
   newPoster();
 }
 
