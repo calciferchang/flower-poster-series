@@ -1,28 +1,27 @@
 //@ts-nocheck
+const CONFIG = {
+  numFlowers: () => floor(random(1, 5)),
+  colorPalette: () => random(["dark", "light"]),
+  tintAmount: 0.25,
+  frameRate: 1 / 2,
+};
 
-function setup() {
-  let container = select("#sketch-container");
-  let w = container.width;
-  let h = container.height;
-  createCanvas(w, h);
-  select("canvas").parent("sketch-container");
+const FLOWER_COLORS = {
+  yellow: "rgb(251, 178, 109)",
+  orange: "rgb(245, 125, 98)",
+  red: "rgb(225, 91, 100)",
+};
 
-  angleMode(DEGREES);
-  frameRate(0.5);
-  newPoster();
-}
-
-function draw() {
-  newPoster();
-}
-
-function keyPressed() {}
+const CANVAS_COLORS = {
+  dark: { canvas: "rgb(17, 17, 17)", stem: "rgb(250, 249, 246)" },
+  light: { canvas: "rgb(250, 249, 246)", stem: "rgb(17, 17, 17)" },
+};
 
 function newPoster() {
-  let numFlowers = floor(random(1, 5));
-  let colorPalette = random(["dark", "light"]);
+  let numFlowers = CONFIG.numFlowers();
+  let colorPalette = CONFIG.colorPalette();
 
-  let tintAmount = 0.25;
+  let tintAmount = CONFIG.tintAmount;
   let currentTint = tintAmount * numFlowers;
   background(CANVAS_COLORS[colorPalette].canvas);
   for (let i = numFlowers - 1; i >= 0; i--) {
@@ -172,17 +171,6 @@ const BULB_TYPE = {
   },
 };
 
-const FLOWER_COLORS = {
-  yellow: "rgb(251, 178, 109)",
-  orange: "rgb(245, 125, 98)",
-  red: "rgb(225, 91, 100)",
-};
-
-const CANVAS_COLORS = {
-  dark: { canvas: "rgb(17, 17, 17)", stem: "rgb(250, 249, 246)" },
-  light: { canvas: "rgb(250, 249, 246)", stem: "rgb(17, 17, 17)" },
-};
-
 //Helper functions
 function getSecondPoint(origin, angle, length) {
   let dx = length * sin(angle);
@@ -191,4 +179,20 @@ function getSecondPoint(origin, angle, length) {
     x: origin.x + dx,
     y: origin.y - dy,
   };
+}
+
+// P5.JS setup
+//
+function setup() {
+  let container = select("#sketch-container");
+  createCanvas(container.width, container.height);
+  select("canvas").parent("sketch-container");
+
+  angleMode(DEGREES);
+  frameRate(CONFIG.frameRate);
+  newPoster();
+}
+
+function draw() {
+  newPoster();
 }
