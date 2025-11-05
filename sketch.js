@@ -53,7 +53,11 @@ function newPoster() {
 
   let tintAmount = CONFIG.tintAmount();
   let currentTint = tintAmount * numFlowers;
-  background(COLOR_SCHEME[colorPalette].canvas);
+
+  let bgColor = COLOR_SCHEME[colorPalette].canvas;
+  background(bgColor);
+  container.style("background-color", bgColor);
+
   for (let i = numFlowers - 1; i >= 0; i--) {
     currentTint -= tintAmount;
 
@@ -190,8 +194,10 @@ function getSecondPoint(origin, angle, length) {
 
 // P5.JS setup
 //
+let container;
+let resizeTimeout;
 function setup() {
-  let container = select("#sketch-container");
+  container = select("#sketch-container");
   createCanvas(container.width, container.height);
   select("canvas").parent("sketch-container");
 
@@ -199,7 +205,15 @@ function setup() {
   frameRate(CONFIG.FPS);
   newPoster();
 }
-
+function windowResized() {
+  noLoop();
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    resizeCanvas(container.elt.offsetWidth, container.elt.offsetHeight);
+    newPoster(); // Generate new poster with new dimensions
+    loop(); // Resume animation
+  }, 250);
+}
 function draw() {
   newPoster();
 }
