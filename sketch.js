@@ -1,50 +1,140 @@
 //@ts-nocheck
 
-function setup() {
-  let container = select("#sketch-container");
-  let w = container.width;
-  let h = container.height;
-  createCanvas(w, h);
-  select("canvas").parent("sketch-container");
+// ============================================================================
+// DISPLAY CONFIGURATION
+// ============================================================================
+const DISPLAY = {
+  FPS: 0.5,
+  BACKGROUND_TINT_MAX: 0.7,
+};
 
-  angleMode(DEGREES);
-  frameRate(0.5);
-  newPoster();
+// ============================================================================
+// COLOR PALETTES
+// ============================================================================
+const COLOR_PALETTES = {
+  dark: { canvas: "rgb(17, 17, 17)", stem: "rgb(250, 249, 246)" },
+  light: { canvas: "rgb(250, 249, 246)", stem: "rgb(17, 17, 17)" },
+};
+
+const PETAL_COLORS = {
+  yellow: "rgb(251, 194, 109)",
+  orange: "rgb(245, 125, 98)",
+  red: "rgb(225, 91, 100)",
+};
+
+// ============================================================================
+// STEM CONFIGURATION
+// ============================================================================
+const STEM = {
+  WEIGHT: 8,
+  ANGLE_RANGE: { min: -22.5, max: 22.5 },
+  SEGMENTS: { mean: 2.5, stdDev: 3, min: 1, max: 10 },
+
+  lengths: {
+    wild: () => random(75, 200),
+  },
+
+  // Placeholder for future curve implementations
+  curves: {},
+};
+
+// ============================================================================
+// BULB VARIANTS
+// ============================================================================
+const BULB = {
+  variants: {
+    daisy: (position, petalColor) => {
+      push();
+      noStroke();
+      translate(position.x, position.y);
+      fill(0);
+      circle(0, 0, 20);
+      fill(petalColor);
+      for (let i = 0; i < 10; i++) {
+        ellipse(15, 20, 40, 40);
+        rotate(60);
+      }
+      pop();
+    },
+  },
+};
+
+// ============================================================================
+// RANDOM GENERATORS
+// ============================================================================
+const RandomGen = {
+  flowerCount() {
+    return floor(random(1, 5));
+  },
+
+  colorPalette() {
+    return random(Object.keys(COLOR_PALETTES));
+  },
+
+  petalColor() {
+    return color(random(Object.values(PETAL_COLORS)));
+  },
+
+  stemAngle() {
+    return random(STEM.ANGLE_RANGE.min, STEM.ANGLE_RANGE.max);
+  },
+
+  segmentCount() {
+    return floor(
+      constrain(
+        randomGaussian(STEM.SEGMENTS.mean, STEM.SEGMENTS.stdDev),
+        STEM.SEGMENTS.min,
+        STEM.SEGMENTS.max,
+      ),
+    );
+  },
+
+  stemLengthType() {
+    return random(Object.keys(STEM.lengths));
+  },
+
+  bulbType() {
+    return random(Object.keys(BULB.variants));
+  },
+};
+
+// ============================================================================
+// UTILITY FUNCTIONS
+// ============================================================================
+function getSecondPoint(origin, angle, length) {
+  const dx = length * sin(angle);
+  const dy = length * cos(angle);
+  return {
+    x: origin.x + dx,
+    y: origin.y - dy,
+  };
 }
 
-function draw() {
-  newPoster();
+function reflectPoint(point, pivot) {
+  return {
+    x: pivot.x + (pivot.x - point.x),
+    y: pivot.y + (pivot.y - point.y),
+  };
 }
 
-function keyPressed() {}
-
-function newPoster() {
-  let numFlowers = floor(random(1, 5));
-  let colorPalette = random(["dark", "light"]);
-
-  let tintAmount = 0.25;
-  let currentTint = tintAmount * numFlowers;
-  background(CANVAS_COLORS[colorPalette].canvas);
-  for (let i = numFlowers - 1; i >= 0; i--) {
-    currentTint -= tintAmount;
-
-    let flower = new Flower({
-      start: { x: width / 2, y: height },
-      currentTint: currentTint,
-      colorPalette: colorPalette,
-    });
-    flower.draw();
-  }
+function randomCanvasPoint() {
+  return {
+    x: random(0, width),
+    y: random(0, height),
+  };
 }
+
+// ============================================================================
+// STEM SEGMENT
+// ============================================================================
 class StemSegment {
   constructor(a1, c1, c2, a2) {
-    this.a1 = a1; // anchor 1 (start)
-    this.c1 = c1; // control 1
-    this.c2 = c2;
-    this.a2 = a2;
+    this.a1 = a1; // anchor 1 (start point)
+    this.c1 = c1; // control point 1
+    this.c2 = c2; // control point 2
+    this.a2 = a2; // anchor 2 (end point)
   }
 
-  // Convert to array for bezier()
   toArray() {
     return [
       this.a1.x,
@@ -66,129 +156,156 @@ class StemSegment {
   }
 }
 
+// ============================================================================
+// FLOWER
+// ============================================================================
 class Flower {
-  constructor({
-    // Need to generate predetermined start positions
-    start,
-    numSegments = floor(constrain(randomGaussian(2.5, 3), 1, 10)),
-    stemType = random(["wild"]),
-    bulbType = random(["daisy"]),
-    currentTint,
-    colorPalette,
-  }) {
-    this.segments = [];
-    this.numSegments = numSegments;
-    this.stemType = stemType;
-    this.bulbType = bulbType;
+  constructor({ startPosition, currentTint, colorPalette }) {
+    // Visual properties
     this.colorPalette = colorPalette;
-    this.petalColor = color(random(Object.values(FLOWER_COLORS)));
+    this.petalColor = RandomGen.petalColor();
     this.currentTint = currentTint;
-    // Generate all segments
-    this.generateSegments(start);
+
+    // Structure properties
+    this.numSegments = RandomGen.segmentCount();
+    this.stemLengthType = RandomGen.stemLengthType();
+    this.bulbType = RandomGen.bulbType();
+
+    // Generate the stem
+    this.segments = [];
+    this.generateSegments(startPosition);
   }
 
-  generateSegments(start) {
-    // Need to move more of this into different types
-    noFill();
-    let startAngle = random(-22, 22.5);
-    let distance = STEM_TYPE[this.stemType]();
-    // First segment
-    let a1 = start;
-    let c1 = getSecondPoint(a1, startAngle, distance);
-    let a2 = { x: random(0, width), y: random(0, height) };
-    let c2 = { x: random(0, width), y: random(0, height) };
+  generateSegments(startPosition) {
+    // Create first segment
+    const startAngle = RandomGen.stemAngle();
+    const length = STEM.lengths[this.stemLengthType]();
+
+    const a1 = startPosition;
+    const c1 = getSecondPoint(a1, startAngle, length);
+    const a2 = randomCanvasPoint();
+    const c2 = randomCanvasPoint();
 
     this.segments.push(new StemSegment(a1, c1, c2, a2));
 
-    // Generate remaining segments
+    // Generate remaining connected segments
     for (let i = 1; i < this.numSegments; i++) {
-      let prevSegment = this.segments[i - 1];
-      this.addConnectedSegment(prevSegment);
+      this.addConnectedSegment(this.segments[i - 1]);
     }
   }
 
   addConnectedSegment(prevSegment) {
-    // Start where previous segment ended
-    let a1 = prevSegment.a2;
-
-    // Reflect previous c2 across a2 for smooth continuation
-    let c1 = {
-      x: prevSegment.a2.x + (prevSegment.a2.x - prevSegment.c2.x),
-      y: prevSegment.a2.y + (prevSegment.a2.y - prevSegment.c2.y),
-    };
-
-    // New random endpoint and control point
-    let a2 = { x: random(0, width), y: random(0, height) };
-    let c2 = { x: random(0, width), y: random(0, height) };
+    const a1 = prevSegment.a2;
+    const c1 = reflectPoint(prevSegment.c2, a1);
+    const a2 = randomCanvasPoint();
+    const c2 = randomCanvasPoint();
 
     this.segments.push(new StemSegment(a1, c1, c2, a2));
   }
 
-  drawBulb() {
-    let endPoint = this.segments[this.segments.length - 1].a2;
-
-    let petalColor = lerpColor(
-      this.petalColor,
-      color(CANVAS_COLORS[this.colorPalette].canvas),
+  getStemColor() {
+    const palette = COLOR_PALETTES[this.colorPalette];
+    return lerpColor(
+      color(palette.stem),
+      color(palette.canvas),
       this.currentTint,
     );
+  }
 
-    BULB_TYPE[this.bulbType](endPoint, petalColor);
+  getPetalColor() {
+    const palette = COLOR_PALETTES[this.colorPalette];
+    return lerpColor(this.petalColor, color(palette.canvas), this.currentTint);
+  }
+
+  drawStem() {
+    strokeWeight(STEM.WEIGHT);
+    stroke(this.getStemColor());
+    noFill();
+
+    for (const segment of this.segments) {
+      bezier(...segment.toArray());
+    }
+  }
+
+  drawBulb() {
+    const endPoint = this.segments[this.segments.length - 1].a2;
+    const petalColor = this.getPetalColor();
+
+    BULB.variants[this.bulbType](endPoint, petalColor);
   }
 
   draw() {
-    strokeWeight(8);
-    noFill();
-    let stemColor = lerpColor(
-      color(CANVAS_COLORS[this.colorPalette].stem),
-      color(CANVAS_COLORS[this.colorPalette].canvas),
-      this.currentTint,
-    );
-    stroke(stemColor);
-    for (let segment of this.segments) {
-      bezier(...segment.toArray());
-    }
+    this.drawStem();
     this.drawBulb();
   }
 }
 
-const STEM_TYPE = {
-  wild: () => random(75, 200),
-};
+// ============================================================================
+// POSTER GENERATION
+// ============================================================================
+function newPoster() {
+  const numFlowers = RandomGen.flowerCount();
+  const colorPalette = RandomGen.colorPalette();
+  const bgColor = COLOR_PALETTES[colorPalette].canvas;
+  // Set background
+  background(bgColor);
+  container.style("background-color", bgColor);
 
-const BULB_TYPE = {
-  daisy: (position, petalColor) => {
-    push();
-    noStroke();
-    translate(position.x, position.y);
-    fill(0);
-    circle(0, 0, 20);
-    fill(petalColor);
-    for (let i = 0; i < 10; i++) {
-      ellipse(15, 20, 40, 40);
-      rotate(60);
-    }
-    pop();
-  },
-};
+  // Generate flowers with depth tinting
+  const flowers = [];
+  for (let i = numFlowers - 1; i >= 0; i--) {
+    const tint =
+      numFlowers === 1
+        ? 0
+        : map(i, 0, numFlowers - 1, 0, DISPLAY.BACKGROUND_TINT_MAX);
 
-const FLOWER_COLORS = {
-  yellow: "rgb(251, 178, 109)",
-  orange: "rgb(245, 125, 98)",
-  red: "rgb(225, 91, 100)",
-};
+    const flower = new Flower({
+      startPosition: { x: width / 2, y: height },
+      currentTint: tint,
+      colorPalette: colorPalette,
+    });
 
-const CANVAS_COLORS = {
-  dark: { canvas: "rgb(17, 17, 17)", stem: "rgb(250, 249, 246)" },
-  light: { canvas: "rgb(250, 249, 246)", stem: "rgb(17, 17, 17)" },
-};
+    flower.draw();
+    flowers.push(flower);
+  }
 
-//Helper functions
-function getSecondPoint(origin, angle, length) {
-  let dx = length * sin(angle);
-  let dy = length * cos(angle);
-  return {
-    x: origin.x + dx,
-    y: origin.y - dy,
+  // Store for debugging
+  window.currentPoster = {
+    numFlowers,
+    colorPalette,
+    flowers,
+    bgColor,
   };
+}
+
+// ============================================================================
+// P5.JS SETUP
+// ============================================================================
+let container;
+let resizeTimeout;
+
+function setup() {
+  container = select("#sketch-container");
+  createCanvas(container.width, container.height);
+  select("canvas").parent("sketch-container");
+
+  angleMode(DEGREES);
+  frameRate(DISPLAY.FPS);
+  newPoster();
+}
+
+function windowResized() {
+  noLoop();
+  clearTimeout(resizeTimeout);
+  resizeTimeout = setTimeout(() => {
+    resizeCanvas(container.elt.offsetWidth, container.elt.offsetHeight);
+    newPoster();
+    loop();
+  }, 250);
+}
+
+function draw() {}
+
+function keyPressed() {
+  newPoster();
 }
