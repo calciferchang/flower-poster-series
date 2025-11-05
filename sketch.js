@@ -244,11 +244,9 @@ class Flower {
 // POSTER GENERATION
 // ============================================================================
 function newPoster() {
-  console.clear();
   const numFlowers = RandomGen.flowerCount();
   const colorPalette = RandomGen.colorPalette();
   const bgColor = COLOR_PALETTES[colorPalette].canvas;
-  console.log(numFlowers);
   // Set background
   background(bgColor);
   container.style("background-color", bgColor);
@@ -285,8 +283,6 @@ function newPoster() {
 // ============================================================================
 let container;
 let resizeTimeout;
-// for debugging
-let currentPoster;
 
 function setup() {
   container = select("#sketch-container");
