@@ -117,11 +117,14 @@ function reflectPoint(point, pivot) {
   };
 }
 
-function randomCanvasPoint() {
-  return {
-    x: random(0, width),
-    y: random(0, height),
-  };
+function noiseCanvasPoint() {
+  // Generate a point using Perlin-like noise for smoother distribution
+  // Keep a simple, monotonically increasing seed to sample noise over time.
+  if (typeof noiseCanvasPoint._seed === "undefined") noiseCanvasPoint._seed = 0;
+  const nx = noise(noiseCanvasPoint._seed);
+  const ny = noise(noiseCanvasPoint._seed + 1000);
+  noiseCanvasPoint._seed += 0.01;
+  return { x: nx * width, y: ny * height };
 }
 
 // ============================================================================
@@ -183,8 +186,8 @@ class Flower {
 
     const a1 = startPosition;
     const c1 = getSecondPoint(a1, startAngle, length);
-    const a2 = randomCanvasPoint();
-    const c2 = randomCanvasPoint();
+    const a2 = noiseCanvasPoint();
+    const c2 = noiseCanvasPoint();
 
     this.segments.push(new StemSegment(a1, c1, c2, a2));
 
@@ -197,8 +200,8 @@ class Flower {
   addConnectedSegment(prevSegment) {
     const a1 = prevSegment.a2;
     const c1 = reflectPoint(prevSegment.c2, a1);
-    const a2 = randomCanvasPoint();
-    const c2 = randomCanvasPoint();
+    const a2 = noiseCanvasPoint();
+    const c2 = noiseCanvasPoint();
 
     this.segments.push(new StemSegment(a1, c1, c2, a2));
   }
@@ -304,8 +307,11 @@ function windowResized() {
   }, 250);
 }
 
-function draw() {}
+function draw() {
+  newPoster();
+}
 
 function keyPressed() {
-  newPoster();
+  noLoop();
+  redraw();
 }
